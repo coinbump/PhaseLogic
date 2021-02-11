@@ -32,5 +32,15 @@ var sequenceChords = ["maj", "min"]
 var sequenceDenominators = [4, 4, 4, 4]
 var sequencePitches = [0, 3, 5, 3]
 ```
+
+# Advanced Features
+## Chord Automation
+
+Chords can be automated by specifying the `automatedChords` array. If this is defined, it will override the step sequence chords and use the automation value for `automatedChordValue`. This allows you to automate chord progressions as needed.
+
+```js
+var automatedChords = ["maj", "p4"]
+```
+
  
  Feel free to use and enjoy
