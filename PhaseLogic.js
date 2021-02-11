@@ -69,7 +69,6 @@ const PhaseMIDIControlChannel = {
 	sustain: 64
 }
 
-
 /*
 	SETTING: sequenceControlChannels
 
@@ -84,6 +83,45 @@ const PhaseMIDIControlChannel = {
 var sequenceControlChannels = new Map([
 	// [PhaseMIDIControlChannel.pan, [0, 127]]
 ])
+
+/*
+	PhaseChordType (enum)
+
+	DESCRIPTION:
+	Types of chords, along with their string notation.
+
+	FUTURE: support more chord types as needed.
+*/
+const PhaseChordType = {
+	major: "maj",
+	minor: "min",
+	diminished: "dim",
+	major7: "maj7",
+	dominant7: "dom7",
+	minor7: "min7",
+	suspended2: "sus2",
+	suspended4: "sus4",
+	augmented: "aug",
+	perfect4: "p4"	// Perfect fourth
+}
+
+/*
+	automatedChords
+
+	DESCRIPTION:
+	Allows sequence chords to be automated by MIDI events. The value of the MIDI event corresponds to the index
+	of the chord in the array
+
+	Remove // comments to use
+
+	EXAMPLE:
+	automatedChords = ["maj", "min"]
+
+	MIDI value 0,2,4,... will play the sequence with a major chord
+	MIDI Value 1,3,5,... will play the sequence with a minor chord
+*/
+//var automatedChords = ["maj", "p4"]
+var automatedChordValue = 0		// Modify with automation
 
 /*
 	=============================================
@@ -343,26 +381,6 @@ const PhaseMIDINote = {
 	=============================================
 */
 /*
-	PhaseChordType (enum)
-
-	DESCRIPTION:
-	Types of chords, along with their string notation.
-
-	FUTURE: support more chord types as needed.
-*/
-const PhaseChordType = {
-	major: "maj",
-	minor: "min",
-	diminished: "dim",
-	major7: "maj7",
-	dominant7: "dom7",
-	minor7: "min7",
-	suspended2: "sus2",
-	suspended4: "sus4",
-	augmented: "aug"
-}
-
-/*
 	chordPitches (enum)
 
 	DESCRIPTION:
@@ -379,7 +397,8 @@ const chordPitches = new Map([
 	[PhaseChordType.minor7, [0, 3, 7, 10]],
 	[PhaseChordType.suspended2, [0, 2, 7]],
 	[PhaseChordType.suspended4, [0, 5, 7]],
-	[PhaseChordType.augmented, [0, 4, 8]]
+	[PhaseChordType.augmented, [0, 4, 8]],
+	[PhaseChordType.perfect4, [0, 5, 5]]
 ])
 
 /*
@@ -506,6 +525,14 @@ function HandleMIDI(event) {
 			for (let index = 0; index < localSequenceLength; index++) {
 				let step = sequence.steps[index % sequence.steps.length]
 				
+				// Chord automation overrides step chords (if enabled)
+				if (typeof automatedChords !== "undefined") {
+					let chordType = automatedChords[automatedChordValue % automatedChords.length]
+					let chord = PhaseScoreChord.newChord(chordType, 0)
+					chord.duration = step.duration
+					step = chord
+				}
+
 				// Get duration as number or function
 				var stepDuration = 1
 				if (typeof step.duration !== "undefined") {
@@ -622,7 +649,6 @@ function HandleMIDI(event) {
 	Parameter values for Logic
 */
 const PhaseLogicParameter = {
-	
 	transpose: 0,
 	sequenceLength: 1,
 	speed: 2,
@@ -630,7 +656,8 @@ const PhaseLogicParameter = {
 	humanizeVelocity: 5,
 	clampVelocity: 6,
 	minVelocity: 7,
-	maxVelocity: 8
+	maxVelocity: 8,
+	automatedChord: 10
 }
 
 function ParameterChanged(param, value) {
@@ -660,6 +687,9 @@ function ParameterChanged(param, value) {
 	case PhaseLogicParameter.maxVelocity:
 		settingMaxVelocity = value
 		break
+	case PhaseLogicParameter.automatedChord:
+		automatedChordValue = value
+		break
 	}
 }
 
@@ -673,7 +703,9 @@ var PluginParameters =
 	{name: "Humanize Velocity", type: "lin", minValue: 0, maxValue: 63, numberOfSteps: 63, defaultValue: settingHumanizeVelocity},
 	{name: "Clamp Velocity", type: "menu", valueStrings: ["Off", "On"], numberOfSteps: 2, defaultValue:settingIsVelocityClamped ? 1 : 0},
 	{name: "Min Velocity", type: "lin", minValue: 0, maxValue: 127, numberOfSteps: 127, defaultValue: settingMinVelocity},
-	{name: "Max Velocity", type: "lin", minValue: 0, maxValue: 127, numberOfSteps: 127, defaultValue: settingMaxVelocity}
+	{name: "Max Velocity", type: "lin", minValue: 0, maxValue: 127, numberOfSteps: 127, defaultValue: settingMaxVelocity},
+	{name: "Advanced Controls", type: "Text"},
+	{name: "Automated Chord", type: "lin", minValue: 0, maxValue: 127, numberOfSteps: 127, defaultValue: 0}
 ]
 
 
