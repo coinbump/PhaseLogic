@@ -57,6 +57,35 @@ var sequenceLength = 0				// Value 0 is ignored
 */
 
 /*
+	PhaseMIDIControlChannel
+
+	DESCRIPTION:
+	Standard MIDI CC (control channel) values
+*/
+const PhaseMIDIControlChannel = {
+	modWheel: 1,
+	volume: 2,
+	pan: 10,
+	sustain: 64
+}
+
+
+/*
+	SETTING: sequenceControlChannels
+
+	DESCRIPTION:
+	Sends control channel events for each step in a sequence.
+
+	FORMAT:
+	[firstControlChannel, [step1Value, step2Value, ...]],
+	...
+	[lastControlChannel, [step1Value, step2Value, ...]]
+*/
+var sequenceControlChannels = new Map([
+	// [PhaseMIDIControlChannel.pan, [0, 127]]
+])
+
+/*
 	=============================================
 	PhaseLogic settings.
 
@@ -295,18 +324,6 @@ class PhaseScoreRest extends PhaseScoreElement {
 	Types used for MIDI events
 	=============================================
 */
-/*
-	PhaseMIDIControlChannel
-
-	DESCRIPTION:
-	Standard MIDI CC (control channel) values
-*/
-const PhaseMIDIControlChannel = {
-	modWheel: 1,
-	volume: 2,
-	pan: 10,
-	sustain: 64
-}
 
 /*
 	PhaseMIDINote
@@ -569,6 +586,17 @@ function HandleMIDI(event) {
 
 							velocity = clampedVelocity
 						}
+
+						// Send Midi CC events for sequence (pan, sustain, mod wheel, etc.)
+						sequenceControlChannels.forEach(function(ccSteps, channel) {
+							let stepCC = ccSteps[index % ccSteps.length]
+							let channelChange = new ControlChange(noteOnEvent)
+							channelChange.number = channel
+							channelChange.value = stepCC
+							channelChange.value = MIDI.normalizeData(channelChange.value)
+				
+							channelChange.send()
+						})
 
 						noteOnEvent.velocity = MIDI.normalizeData(velocity)
 						noteOnEvent.send()
