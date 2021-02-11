@@ -478,6 +478,7 @@ function HandleMIDI(event) {
 		}
 
 		if (event instanceof NoteOn) {	
+			let triggerEvent = event
 			var beatPos = event.beatPos
 
 			let localSequenceLength = sequenceLength
@@ -536,10 +537,11 @@ function HandleMIDI(event) {
 					}
 
 					noteOnEvents.forEach(function(noteOnEvent) {
-						noteOnEvent.beatPos = beatPos
+						var newBeatPos = beatPos
+						newBeatPos += Phase.randomDelta(settingHumanizeBeatPos)
 
-						// We can only humanize the beat position forward in time (moving back results in the note not getting played)
-						noteOnEvent.beatPos += Math.random()*settingHumanizeBeatPos
+						// The beat position can never be before the original NoteOnEvent beatPos or it won't play
+						noteOnEvent.beatPos = Math.max(newBeatPos, triggerEvent.beatPos)
 
 						var velocity = noteOnEvent.velocity
 
