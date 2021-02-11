@@ -124,6 +124,22 @@ const PhaseChordType = {
 var automatedChordValue = 0		// Modify with automation
 
 /*
+	keyMapChords
+
+	DESCRIPTION:
+	Allows sequence chords to be determined by the pitch of the root note played
+
+	Remove // comments to use
+
+	EXAMPLE:
+	keyMapChords = ["maj", "min"]
+
+	Key C,D,E,... will play the sequence with a major chord
+	MIDI Value C#,D#,F,... will play the sequence with a minor chord
+*/
+//var keyMapChords = ["maj", "min"]
+
+/*
 	=============================================
 	PhaseLogic settings.
 
@@ -528,6 +544,13 @@ function HandleMIDI(event) {
 				// Chord automation overrides step chords (if enabled)
 				if (typeof automatedChords !== "undefined") {
 					let chordType = automatedChords[automatedChordValue % automatedChords.length]
+					let chord = PhaseScoreChord.newChord(chordType, 0)
+					chord.duration = step.duration
+					step = chord
+				} else if (typeof keyMapChords !== "undefined") {
+					//	Map chord to key pressed
+					let noteInOctave = triggerEvent.pitch % 12
+					let chordType = keyMapChords[noteInOctave % keyMapChords.length]
 					let chord = PhaseScoreChord.newChord(chordType, 0)
 					chord.duration = step.duration
 					step = chord
