@@ -42,5 +42,13 @@ Chords can be automated by specifying the `automatedChords` array. If this is de
 var automatedChords = ["maj", "p4"]
 ```
 
+## KeyMap Chords
+
+Chords can be activated by specific keys in the octave by specifying the `keyMapChords` array. If this is defined, it will override the step sequence chords and use the chord mapped to the key for the key pressed.
+
+```js
+var keyMapChords = ["maj", "min"]
+```
+
  
  Feel free to use and enjoy
