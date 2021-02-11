@@ -537,7 +537,9 @@ function HandleMIDI(event) {
 
 					noteOnEvents.forEach(function(noteOnEvent) {
 						noteOnEvent.beatPos = beatPos
-						noteOnEvent.beatPos += Phase.randomDelta(settingHumanizeBeatPos)
+
+						// We can only humanize the beat position forward in time (moving back results in the note not getting played)
+						noteOnEvent.beatPos += Math.random()*settingHumanizeBeatPos
 
 						var velocity = noteOnEvent.velocity
 
